@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP 配銷模組 - 互動模擬題庫</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
+            --warning-color: #f39c12;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 20px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; }
+        h2 { margin: 10px 0 0 0; font-size: 1rem; font-weight: normal; opacity: 0.9; }
+
+        .content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 設定與開始畫面 */
+        .setup-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        .input-warning {
+            color: var(--error-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none; /* 預設隱藏 */
+            font-weight: bold;
+            padding: 5px 0;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover { background-color: #2980b9; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn.secondary { background-color: #95a5a6; margin-top: 10px; }
+        .btn.danger { background-color: #e74c3c; margin-top: 20px; }
+
+        /* 測驗畫面 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            background: #fff;
+            margin-bottom: 20px;
+        }
+
+        .question-meta {
+            font-size: 0.9rem;
+            color: #fff;
+            background-color: var(--accent-color);
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .question-meta.final { background-color: #9b59b6; }
+
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            white-space: pre-wrap;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 15px 20px;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .option-label {
+            font-weight: bold;
+            margin-right: 15px;
+            min-width: 25px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--accent-color);
+            background: #ebf5fb;
+        }
+
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: var(--success-color);
+            color: #155724;
+        }
+
+        .option-btn.wrong {
+            background-color: #f8d7da;
+            border-color: var(--error-color);
+            color: #721c24;
+        }
+
+        /* 結果畫面 */
+        .score-display {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .score-number {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: block;
+            margin: 10px 0;
+        }
+        
+        .score-message {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .score-message.perfect { color: var(--success-color); }
+        .score-message.warning { color: var(--warning-color); }
+        .score-message.normal { color: var(--primary-color); }
+
+        .review-list {
+            margin-top: 20px;
+        }
+
+        .review-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+        }
+
+        .review-q { font-weight: bold; margin-bottom: 10px; color: #2c3e50; }
+        .review-ans-row { margin: 5px 0; }
+        .review-label { display: inline-block; width: 80px; color: #666; }
+        .text-correct { color: var(--success-color); font-weight: bold; }
+        .text-wrong { color: var(--error-color); font-weight: bold; text-decoration: line-through; }
+
+        .hidden { display: none !important; }
+        
+        #feedback-area {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 1.5em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>ERP 配銷模組</h1>
+        <h2>期中/期末 模擬考題系統</h2>
+    </header>
+
+    <div class="content" id="app">
+        <div id="loading-screen" style="text-align: center; padding: 40px;">
+            資料載入與解析中...
+        </div>
+
+        <div id="start-screen" class="hidden">
+            <div class="setup-group">
+                <label for="bank-selector">選擇題庫範圍</label>
+                <select id="bank-selector" onchange="updateBankInfo()">
+                    <option value="all">全部題庫 (期中 + 期末)</option>
+                    <option value="midterm">僅考 期中考範圍</option>
+                    <option value="final">僅考 期末考範圍</option>
+                </select>
+                <div id="bank-info" style="margin-top: 8px; color: #666; font-size: 0.9rem;"></div>
+            </div>
+
+            <div class="setup-group">
+                <label for="question-count">題目數量 (最少 20 題)</label>
+                <input type="number" id="question-count" value="20" min="20" oninput="validateInput()">
+                <div id="count-warning" class="input-warning">⚠️ 為了達到練習效果，題數不得少於 20 題喔！</div>
+            </div>
+
+            <div class="setup-group">
+                <label>出題模式</label>
+                <div class="radio-group">
+                    <label class="radio-item">
+                        <input type="radio" name="mode" value="random" checked> 隨機抽題
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="mode" value="sequential"> 循序練習
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn" onclick="startQuiz()">開始測驗</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div class="status-bar">
+                <span id="progress-text">第 1 / 20 題</span>
+                <span id="score-text">得分: 0</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div class="question-card">
+                <div id="question-tag" class="question-meta">期中</div>
+                <div class="question-text" id="question-text">題目載入中...</div>
+                <div class="options-grid" id="options-container">
+                    </div>
+            </div>
+            
+            <div id="feedback-area"></div>
+            
+            <button class="btn hidden" id="next-btn" onclick="nextQuestion()">下一題</button>
+            <button class="btn danger" onclick="endQuizEarly()">交卷 (結束測驗)</button>
+        </div>
+
+        <div id="result-screen" class="hidden">
+            <div class="score-display">
+                您的成績
+                <span class="score-number" id="final-score">0</span>
+                <div id="score-message" class="score-message"></div>
+            </div>
+            <button class="btn" onclick="initApp()">重新測驗</button>
+            <div id="review-container" class="review-list"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ------------------------------------------------------------------------
+    // 資料區：包含期中與期末的 CSV 原始內容
+    // ------------------------------------------------------------------------
+    
+    // 期中考資料
+    const midtermRawData = `
+題組,題目,答案,選項1,選項2,選項3,選項4
+,以下何者不是訂單管理系統的範圍？,3.0,報價單管理,訂單管理,客戶維修品的進度追蹤,訂單變更管理
+,客戶訂單若是以美金交易，請問有關匯率的計算，是以幣別匯率建立作業中的哪個匯率為預設值？,2.0,銀行賣出匯率,銀行買進匯率,平均匯率,報關賣出匯率
+,"有關接單出貨的流程者順序一般為何？？A.報價 B.客戶訂單 C.銷貨單 D. 折讓單 E.收款單 F.結帳單""",1.0,ABCDFE,ACDBEF,ABCDEF,ABEFCD
+,如果針對已經確認的訂單，想要保留客戶變更的軌跡，應該如何處理最適當？,1.0,以訂單變更單處理保留每一版的訂單變更記錄,直接修改訂單,刪除原訂單，再打一張新訂單,修改銷貨資料。
+,訂單如果已經交貨完成，結案碼是呈現什麼狀態？,4.0,y：指定結案,N：未結案,n：未出貨,Y：自動結案。
+,『商品預計出貨明細表』是依何種角度查詢訂單資料？,2.0,訂單,品號,客戶,業務員。
+,輸入客戶訂單時，欲利用複製前置單據功能複製報價單，可是卻找不到報 價單資料，可能的原因是？A.該張報價單客戶確認項目未打勾 B.該張報價單未確認 C.該張報價單已出貨完畢,4.0,ABC,AC,BC,AB
+,如果有一家客戶有三個固定的送貨地點，可以請客戶在哪支作業建立這三個地址，而後只要用選取即可，不需要每一張訂單手動輸入？,1.0,客戶資料建立作業,交易對象分類建立作業,客戶商品計價建立作業,客戶品號建立作業。
+,客戶訂單的送貨地址可用哪一個功能鍵來輔助選取客戶的其他地址？,2.0,F1,F2,F4,F6
+,報價單單身哪個欄位存檔時不可以空白？,4.0,贈品量,客戶品號,失效日,生效日
+,關於訂單變更單下列敘述錯誤？,4.0,可以執行訂單指定結案動作,可以追加訂購商品,同一張訂單前一個變更版次未確認不可以進行下一版次變更,訂單變更僅能變更數量，不能變更交期
+,下列何者是訂單變更單的作業目的？,4.0,記錄歷史變更紀錄,方便協調後續相關部門備料及生產,方便變更紀錄查詢,以上皆是
+,有關『報價單建立作業』，以下描述何者為非,3.0,報價單必須要確認，還要客戶確認，才能轉為客戶訂單,報價單必須要確認，還要客戶確認，才能轉銷貨單,如果折扣率是10%，表示打九折,報價數量若含贈品數量，要分開數量輸入
+,有關『客戶訂單建立作業』，單頭功能鍵的【複製前置單據】指的是何種單據?,2.0,銷貨單,報價單,訂單,銷退單
+,對客戶信用額度的查核未包括,3.0,未出貨訂單金額,未結帳銷貨金額,未兌現應付票據,未兌現應收票據
+,『客戶基本資料建立作業』如果子公司的應收帳款要歸屬總公司，請問哪一個欄位要勾選?,2.0,母公司請款,總公司請款,子公司請款,歸戶請款
+,"訂單確定不再交貨時要指定結案,此指定結案可於系統何處作業",3.0,訂單指定結案作業(批次作業),透過訂單變更作業指定結案,以上皆是,直接將訂單刪除
+,客戶訂單若要做變更，以下何者不可變更,1.0,版次,單價,預交日,指定結案
+,客戶訂單單身的來源別不包含以下那一項,4.0,報價單,合約訂單,其它,採購單
+,『鍵值(KEY)』的欄位在WF ERP系統的作業畫面是哪種顏色,4.0,白色,黃色,紅色,孔雀綠色
+,WF ERP系統報表格式可以有類似EXCEL的凍結窗格功能，下列何者正確,4.0,處理縮排?,對齊用十字線?,折行?,固定欄位
+,在WF ERP系統裡，設定查詢的條件式「like」用法，以下何者有誤,1.0,「%like」為查詢「開頭是」?,「%like%」為查詢「包含」?,「like%」為查詢「開頭是」?,「%like」為查詢「結尾是」
+,以下何者不是工作佇列的處理狀態,2.0,等待中,產生中,已完成,鎖定中
+,有關報表格式修改，下列何者正確,4.0,可調整欄位寬度?,可調整欄位位置?,可隱藏/顯示欄位?,以上皆是
+,請問報表開啟後，下列描述何者有誤,3.0,可在佇列工作控制台內，查詢到輸入的篩選條件?,報表內容可以轉成EXCEL檔,報表內容可轉成PDF檔,可以調整報表的欄位寬度
+,當報表工作佇列的處理狀態是何種狀況才可以開啟報表,2.0,處理中,已完成,等待中,有問題
+,基本操作中，若欄位呈現黃色其意義如何(如採購單建立作業的廠商),4.0,一新增，離開欄位後就不可修改,資料存檔後，就不能修改,資料存檔後，如果有權限還是可以修改,不可以空白，一定要輸入
+,基本操作中，若欄位呈現藍色其意義如何(如採購單號),2.0,一新增，離開欄位後就不可修改,資料存檔後，就不能修改,資料存檔後，如果有權限還是可以修改,以上皆非
+,基礎操作：若要查看由系統產生好的報表，要開啟哪一支作業查看？,2.0,派班中心,佇列工作控制台,按一下主畫面右邊的「流程圖」。,按一下主畫面左邊的「作業清單
+,基礎操作：以下關於作業建立作業裡「刪除」功能的說明，何者有誤？,3.0,可分為「整張單據刪除」及「單身單筆資料刪除」兩種方式。,若執行「整張單據刪除」的功能，該單據不得是「已確認」或「已作廢」的單據。,若執行「單身單筆資料刪除」的功能，可在要刪除的資料上，同時按下「Ctrl」及「Del」的按鍵,該單據必須是在「修改」的狀態下，才可執行「單身單筆資料刪除」的功能。
+,使用者在使用手冊裡，查看得到系統有某建立作業、畫面說明，但是在系統中卻無法執行該作業，原因可能是,2.0,按F1鍵把執行的權限加上去就可以了?,未給予執行權限，所以無法執行?,按F1鍵把隱藏的作業叫出來就可以,使用者的功能鍵安裝的不完全
+,客戶信用額度管制不包括下列哪一項,1.0,報價金額?,訂單金額?,銷貨金額?,應收帳款金額
+,交易流程管理中，單據如果未經核准的，應該要作廢，不要刪除單據的主要原因為何,1.0,保留資料的完整性，方便將來資料查核?,系統刪除不掉?,因為單據自動編號，如果刪除就不能自動編號了?,沒有刪除的功能
+,如果針對已經確認的訂單，想要保留客戶變更的軌跡，應該如何處理最適當,2.0,直接修改訂單就好?,以訂單變更單處理，保留每一版的訂單變更記錄?,訂單變更單，只保留最近一筆資料?,報價單若有好幾版，應該輸入報價變更單
+,下列何者是訂單變更單的作業目的,4.0,記錄歷史變更紀錄?,方便協調後續相關部門備料及生產?,方便變更紀錄查詢?,以上皆是
+,在『客戶訂單建立作業』單身欄位「來源別」是記錄單筆訂購資料，不包含以下何者,4.0,合約訂單?,訂單變更單?,報價單?,採購單
+,以下各種單據對庫存數量的影響，以下描述何者為非,1.0,客戶訂單會讓庫存減少?,託外退貨單會讓庫存減少?,生產入庫單會讓庫存增加?,領料單會讓庫存減少
+,對於報價單建立下列何者有誤,3.0,輸入客戶代號會依設定自動帶出交易幣別?,報價單單身的生效日不可以空白?,已確認的報價單可以轉為客戶訂單或銷貨單?,已確認的報價單還要執行客戶確認才可以轉為客戶訂單或銷貨單
+,開始建立『品號資料建立』時，有關商品的資料內容以下描述何者為非,4.0,品名：描述商品的說明?,單位：庫存的計量單位?,主要庫別：商品若可能存在不同倉庫，則存放大部分的數量在此倉庫?,主供應商的設定表示該商品只能向一家廠商購買
+,客戶欲購買商品，由公司業務單位接單，此時該紀錄在哪支作業中,3.0,報價單?,採購單?,客戶訂單?,銷貨單
+,『客戶訂單建立作業』中『複製前置單據』的功能，可複製的來源單據下列何組正確,2.0,報價單、銷貨單?,報價單、合約訂單?,合約訂單、銷貨單?,採購單、進貨單
+,「適用於長期預定貨源的訂購，與客戶簽訂協議在有效期間內交易一定金額或數量」以上描述可以記錄在ERP系統的哪一種單據,4.0,報價單,客戶訂單,訂單變更單,合約訂單
+,若企業給某客戶甲信用額度為100萬，目前有未出貨訂單金額20萬元(查核比率60%)；應收帳款30萬元(查核比率100%)，那剩餘可用額度,4.0,50萬,70萬,88萬,58萬
+,『客戶-標竿公司之採購-王小芬來電通知業務明達，表示上午訂購的「數位相機-高手玩家型」要追加數量100台...』請問以上狀況描述業務明達該在ERP系統如何處理,2.0,登錄一張合約訂單?,登錄一張訂單變更單?,登錄一張報價單?,登錄一張銷貨單
+,在訂單系統之期初導入，輸入未結案訂單資料的原因是符合下列哪一項描述,2.0,可計算應收帳款餘額,可追蹤後續出貨進度狀況,可計算預計採購量,可追蹤現有庫存量
+,有關『客戶基本資料建立作業』，如果分公司的應收帳款要歸屬總公司，請問哪一個設定項目要勾選,2.0,母公司請款?,總公司請款?,子公司請款?,歸戶請款
+,業務單位開發的潛在客戶資料可以記錄在ERP系統哪一個作業裡,2.0,客戶資料建立作業?,新客戶申請建立作業?,新廠商申請建立作業?,客戶資料變更作業
+,訂單系統中，有關『報價單建立作業』的作業的【已交數量】可由哪些數量來更新A.銷貨數量 B.銷退數量 C.贈品量 D.報廢量 E.維修量,2.0,AEB,AB,ABC,ABCDE
+,訂單系統中，有關『客戶訂單建立作業』的作業的單頭功能鍵的【複製前置單據】指的是何種單據,4.0,商品預測資料,客戶確認單,請購單,報價單
+,訂單系統中，有關『報價單建立作業』的作業，以下描述何者為非,3.0,報價單必須要確認，而且客戶確認才能轉客戶訂單,報價單必須要確認，而且客戶確認才能轉銷貨單,如果折扣率是10%，表示打九折,報價數量若含贈品數量，要分開數量輸入
+,訂單系統，客戶訂單若是美金，請問有關匯率的計算用的是幣別匯率建立作業中的,1.0,銀行買進匯率,銀行賣出匯率,平均匯率,以上皆非
+,訂單系統中，可做為訂單進度追蹤的報表，是下列哪幾種？,4.0,商品預計出貨明細表,客戶預計出貨明細表,品號預計出貨明細表,以上皆是
+,訂單系統中，『客戶預計出貨明細表』是依何種角度查詢訂單資料？,3.0,訂單,品號,客戶,業務員
+,基礎操作：若要查詢某一個「備註」性質的欄位，是否有「南」這一個字，最適合選擇的「條件式」為何？,4.0,＝,＞＝,＜＝,Like
+`;
+
+    // 期末考資料
+    const finalRawData = `
+1.0,『品號資料建立作業』中【補貨政策】的規劃，有關R：依補貨點的描述，以下何者為非?,一般電子組裝廠，標準規格的螺絲及華司是典型的R件,R件的存貨若低於安全庫存量可從品號再補貨建議表中查閱,@@R件表示：出庫不用填異動單自取即可,設定為R件時，要一併建立補貨點及經濟批量。,,,,,,,,3.0
+1.0,借出入管理的異動對象下列何者有誤?,客戶,廠商,@@部門,其他。,,,,,,,,3.0
+1.0,"將盤點的實際數量記錄到系統時,若是多人分工輸入可以使用哪支作業進行輸入?",盤點資料建立,@@實盤資料補入,抽盤品號產生,盤點 數量重新賦予。,,,,,,,,2.0
+1.0,庫存管理系統中哪一張報表，可以看到品號一段期間內各個日期的進出明細,進耗存統計表,庫存呆滯料明細表,庫存撿料表,@@庫存明細帳。,,,,,,,,4.0
+1.0,最適合與『進耗存統計表』互相勾稽的報表，是下列哪張報表？,盤點盈虧明細表。,庫存明細表。,@@庫存異動統計表。,庫存明細帳。,,,,,,,,3.0
+1.0,下列敘述何者正確？,供應商資料在訂單系統,驗退件退回在庫存系統,借出單在訂單系統,@@轉撥單在庫存系統。,,,,,,,,4.0
+1.0,如果銷貨單在『複製前置單據』，要以『訂單』為複製及勾稽對象，請問銷貨單的單據性質要如何設定,更新核價,核對報價,直接結帳,@@核對訂單。,,,,,,,,4.0
+1.0,若要設定”確認時庫存量不足准許出庫”可在那裡設定？,共用參數設定作業,廠別資料建立作業,@@庫別資料建立作業,品號資料建立作業。,,,,,,,,3.0
+1.0,有關『報價單建立作業』，以下描述何者為非,報價單必須要確認，還要客戶確認，才能轉為客戶訂單,報價單必須要確認，還要客戶確認，才能轉銷貨單,@@如果折扣率是10%，表示打九折,報價數量若含贈品數量，要分開數量輸入。,,,,,,,,3.0
+1.0,有關『客戶訂單建立作業』，單頭功能鍵的【複製前置單據】指的是何種單據?,銷貨單,@@報價單,訂單,銷退單。,,,,,,,,3.0
+1.0,對客戶信用額度的查核未包括,未出貨訂單金額,未結帳銷貨金額,@@未兌現應付票據,未兌現應收票據。,,,,,,,,3.0
+1.0,有關品號轉撥何者正確？,@@可以將存貨倉轉,撥至非存貨倉轉撥前後的存貨價值不變,只有存貨倉才能執行轉撥作業。,,,,,,,,,1.0
+1.0,『客戶基本資料建立作業』如果子公司的應收帳款要歸屬總公司，請問哪一個欄位要勾選?,母公司請款,@@總公司請款,子公司請款,歸戶請款。,,,,,,,,2.0
+1.0,品號基本資料中，下列何者有誤？,若品號不需檢驗即可入庫，可於檢驗方式設定為免檢,透過品號再補貨建議表所產生的請購單數量為經濟批量,最近進價是由進貨單更新而來,"@@服務性商品因無實體庫存,故不需設定品號。",,,,,,,,4.0
+1.0,"客戶商品計價資料單身的分量計價資料,是由何單據更新",訂單,@@報價單,銷貨單,營業日報表。,,,,,,,,2.0
+1.0,希望電腦自動賦予銷貨統一發票號碼，要於訂單系統的何處設定,客戶資料建立作業,@@單據性質設定作業,客戶訂單建立作業,銷貨單建立作業。,,,,,,,,2.0
+1.0,"訂單確定不再交貨時要指定結案,此指定結案可於系統何處作業",訂單指定結案作業(批次作業),透過訂單變更作業指定結案,@@以上皆是,直接將訂單刪除。,,,,,,,,3.0
+1.0,以下何者敘述有誤,一張訂單可分多筆分批銷貨,一張銷貨單可對應多張訂單,@@銷貨單一定要對應訂單,現銷銷貨單不會產生結帳單。,,,,,,,,3.0
+1.0,品號廠商資料中的分量計價資料可由下列何單據更新,請購單,@@核價單,採購單,進貨單。,,,,,,,,2.0
+1.0,請購單的需求日期，系統自動由何推算,核價單,@@品號資料之前置天數,供應商資料之結帳日期,供應商資料之付款日期。,,,,,,,,2.0
+1.0,採購單如確定不交貨要指定結案時，於系統中指定結案的方式有,透過採購指定結案作業,透過採購變更作業指定結案,@@以上皆可,"只要採購人員記得不要收貨就好,系統上不需做任何處理。",,,,,,,,3.0
+1.0,進貨單上「進貨費用」之意義,應付給供應廠商之貨款,@@將納入存貨價值,應收帳款,信用狀金額。,,,,,,,,2.0
+1.0,進貨單是否可分多批進貨收料的管制，於何處設定,採購單,進貨單,@@供應商資料,單據性質設定作業。,,,,,,,,3.0
+1.0,採購管理系統提供哪些報表追蹤進貨狀況,廠商預計進貨表,品號預計進貨表,@@採購預計進貨表,廠商採購交貨狀況表。,,,,,,,,3.0
+1.0,以下那張單據沒有「複製前置單據」的功能,@@報價單,客戶訂單,進貨單,銷貨單。,,,,,,,,1.0
+1.0,以下那一項不是訂單利潤分析狀況表成本依據,標準成本,最近進價,@@標準進價,業務底價。,,,,,,,,3.0
+1.0,客戶訂單若要做變更，以下何者不可變更,@@版次,單價,預交日,指定結案。,,,,,,,,1.0
+1.0,客戶訂單單身的來源別不包含以下那一項,報價單,合約訂單,其它,@@採購單。,,,,,,,,4.0
+1.0,客戶訂單產生方式不包含以下那一項,複製前置單據,手動輸入,複製單據,@@採購轉訂單產生作業。,,,,,,,,4.0
+1.0,進貨單上的那一欄位會使庫存數量增加,計價數量,進貨數量,@@驗收數量,驗退數量。,,,,,,,,3.0
+1.0,以下針對驗退件退回作業?述何者正確?,驗退日期系統自動帶出不可修改,驗退時一次可處理多個品項,@@退回數量不可修改,退回數量可修改且可分批退回。,,,,,,,,3.0
+1.0,以下何者不是銷貨單複製來源,報價單,訂單,借出單,@@借入單。,,,,,,,,4.0
+1.0,庫存管理系統中哪一張報表，可以看到品號每一筆進出的明細？,庫存撿料表,進耗存統計表,@@庫存明細帳,庫存呆滯料明細表。,,,,,,,,3.0
+1.0,有關品號轉撥何者正確？,可以將存貨倉轉撥至非存貨倉,@@轉撥前後的存貨價值不變,轉撥前後其庫存的總數量會增加或減少,以上皆是。,,,,,,,,2.0
+1.0,下列有關「盤盈虧單」的說明，何者錯誤？,@@盤盈虧單只能手動輸入,品號若為盤盈，則盤盈虧的數量是正數,品號若為盤虧，則盤盈虧的數量是負數,為盤點後，帳面數量與實盤數量有差異時，必須產生盤點調整單據來調整庫存帳面數量。,,,,,,,,1.0
+1.0,下列何者不為借出/借入單的異動對象？,客戶,廠商,@@部門,其他。,,,,,,,,3.0
+1.0,若借出單的異動對象為客戶時，則單身的「轉進銷量」是由何種單據回寫的？,進貨單,退貨單,@@銷貨單,銷退單。,,,,,,,,3.0
+1.0,借入歸還單單身的「來源單別-單號」指的是何種單據號碼？,進貨單,銷貨單,訂單,@@借入單。,,,,,,,,4.0
+1.0,下列對借出入管理的「轉進銷量」一詞，何者正確？,借出的商品日後進行歸還時，輸入銷貨單銷帳,貨品借予客戶使用,向廠商借入貨品測試,@@的貨品無法歸還時，以出售方式銷帳。,,,,,,,,4.0
+1.0,下列針對「借出單」的敘述，何者有誤？,當歸還量+轉進貨量>=借出量時，則結案碼=Y已結案,當結案碼=Y已結案，表示針對此張借出單後續不需要再追蹤,@@入的借出歸還單的單據日期晚於借出單的預計歸還日，系統會提出警告訊息,歸還量、結案碼是針對後續客戶歸還的狀況，由系統將資訊回饋回來。,,,,,,,,3.0
+1.0,下列有關銷貨單、銷退單的敘述，何者正確？,銷退單的類型為銷退，會影響庫存減少、應收帳款減少,銷退單的類型為銷退，會影響庫存增加、應收帳款增加,銷退單的類型為折讓，會影響庫存增加、應收帳款增加,@@單的類型為折讓，不會影響庫存增加或減少、應收帳款減少。,,,,,,,,4.0
+1.0,貨單的單價要進行售價的下限管制，請問要在哪裡做設定？,@@品號資料建立作業,客戶資料建立作業,客戶訂單建立作業,單據性質設定作業。,,,,,,,,1.0
+1.0,何者為庫存月結步驟？ A.自動調整庫存作業 B.確認月結當月是否還有未確認的單據 C.執行月底存貨結轉作業 D.修改「進銷存參數設定作業」中的帳務凍結日 E.執行月底成本計作業,BDAEC,@@DBEAC,EACBD,DEBCA,,,,,,,,2.0
+1.0,『盤點資料建立作業』中，單身的帳面數量要執行下列何種作業後才會出現？,盤點資料更新作業,抽盤品號產生作業,@@盤點資料建立作業之【彙總】,實盤資料補入作業。,,,,,,,,3.0
+1.0,公司要進行盤點時，首先要執行哪支作業產生盤點範圍的庫存資料/盤點底稿資料？,@@抽盤品號產生作業,盤點資料更新,盤點資料彙總,盤點資料結轉。,,,,,,,,1.0
+1.0,下列何者不是控管及追蹤出貨狀況的報表？,訂單預計出貨表,@@廠商預計進貨表,商品預計出貨表,業務員預計出貨表。,,,,,,,,2.0
+1.0,若公司預計在101/12/31進行盤點，並於101/12/25執行抽盤品號產生作業，那麼「盤點日期」應該輸入哪一天？,101/12/20,101/12/25,101/12/30,@@101/12/31,,,,,,,,4.0
+1.0,公司進行盤點時，若同一料件放在不同儲位，要輸入什麼做分隔？,，,。,@@；,、,,,,,,,,3.0
+1.0,若要檢示盤點的盈虧狀況，可列印哪一張報表？,盤點卡,盤點清單,庫存明細帳,@@盤點盈虧明細表。,,,,,,,,4.0
+1.0,若要查詢客戶一段期間內，銷貨明細資料狀況，以供財務對帳使用，應該列印哪張報表？,銷貨單明細表,@@客戶銷貨明細表,歷史交易記錄表,客戶預計出貨明細表。,,,,,,,,2.0
+1.0,若要查詢貨品所有往來交易明細表的資料，應該列印哪張報表？,客戶銷貨明細表,庫存明細帳,@@歷史交易記錄表,商品預計出貨明細表。,,,,,,,,3.0
+1.0,採購人員下採購單前，可列印哪張報表查詢所有已請購之明細資料？,採購單明細表,廠商進貨明細表,進貨明細表,@@請購單明細表。,,,,,,,,4.0
+1.0,若要查詢一段期間內，廠商的進貨明細資料，以供廠商帳款對帳使用，可列印哪張報表？,@@廠商進貨明細表,採購單明細表,進貨明細表,請購單明細表。,,,,,,,,1.0
+1.0,有關進貨驗收檢驗狀態的敘述何者不正確？,若進貨數量全數皆驗收通過則檢驗狀態為「合格」,進貨尚未驗收時檢驗狀態為「待驗」,若驗收有不合格者，檢驗狀態為「不良」,@@貨品的驗收很重要，所以進貨一定必須經過進貨驗收動作。,,,,,,,,4.0
+1.0,盤點流程的敘述下列何者正確？a.列印盤點清單 b.實際盤點 c.盤點資料更新 d.抽盤品號產生作業 e.實盤資料補入,a->b->c->d->e,c->d->b->e->a,a->d->b->e->c,@@d->a->b->e->c。,,,,,,,,3.0
+1.0,進行採購變更作業之後，若要查看變更前後的內容，可在哪一支作業查看得到？,"已進行變更,無法查看",@@採購單,進貨單,請購單。,,,,,,,,2.0
+1.0,以下那一功能不是庫存系統的範圍？,借出管理,@@不良品維修,調撥作業,盤點管理。,,,,,,,,2.0
+1.0,公司研發人員自倉庫領取產品進行研究，公司人員輸入一張庫存異動單紀錄領出動作，請問是哪一個時點將庫存數量扣除？,新增,存檔,@@確認,月結。,,,,,,,,3.0
+1.0,銷售分析資料更新作業那一項不是此作業篩選條件,銷貨單,@@客戶訂單,收款單,枌析時使用最小時距。,,,,,,,,2.0
+1.0,客戶ＡＢＣ分析表中以下那些是此作業排名依據 a.銷貨金額 b.銷退金額 c. 銷貨數量 d.銷退數量 e.毛利率,@@abe,acd,ad,bc,,,,,,,,1.0
+`;
+
+    // ------------------------------------------------------------------------
+    // 程式邏輯區
+    // ------------------------------------------------------------------------
+    let allMidtermQuestions = [];
+    let allFinalQuestions = [];
+    let currentQuizQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+
+    // CSV 解析輔助工具：處理引號內的逗號
+    function parseCSVLine(text) {
+        // 使用正規表達式匹配 CSV 欄位，處理引號
+        const re_valid = /^\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*(?:,\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*)*$/;
+        const re_value = /(?!\s*$)\s*(?:'([^'\\]*(?:\\[\S\s][^'\\]*)*)'|"([^"\\]*(?:\\[\S\s][^"\\]*)*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+        
+        let a = [];
+        text.replace(re_value, function(m0, m1, m2, m3) {
+            if      (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
+            else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
+            else if (m3 !== undefined) a.push(m3);
+            return '';
+        });
+        if (/,\s*$/.test(text)) a.push('');
+        return a;
+    }
+
+    // 解析期中考資料
+    function parseMidterm() {
+        const lines = midtermRawData.trim().split('\n');
+        const questions = [];
+        
+        for(let i=1; i<lines.length; i++) {
+            const line = lines[i].trim();
+            if(!line) continue;
+            
+            const cols = parseCSVLine(line);
+            if (cols.length < 5) continue;
+
+            const qText = cols[1];
+            const ansIndexFloat = parseFloat(cols[2]); // 1.0 = A
+            if (isNaN(ansIndexFloat)) continue;
+
+            const options = [];
+            for (let j=3; j<cols.length; j++) {
+                if(cols[j] && cols[j].trim() !== "") {
+                    options.push(cols[j].trim());
+                }
+            }
+            
+            const ansChar = String.fromCharCode(64 + ansIndexFloat); 
+
+            questions.push({
+                id: `M-${i}`,
+                text: qText,
+                options: options,
+                answer: ansChar,
+                tag: '期中'
+            });
+        }
+        return questions;
+    }
+
+    // 解析期末考資料
+    function parseFinal() {
+        const lines = finalRawData.trim().split('\n');
+        const questions = [];
+
+        for(let i=0; i<lines.length; i++) {
+            const line = lines[i].trim();
+            if(!line) continue;
+            
+            const cols = parseCSVLine(line);
+            if (cols.length < 3) continue;
+            
+            const qText = cols[1];
+            let rawOptions = [];
+            let correctIndex = -1;
+
+            for (let j=2; j<cols.length; j++) {
+                let opt = cols[j];
+                if (j === cols.length - 1 && /^\d+\.0$/.test(opt)) {
+                    if (correctIndex === -1) {
+                         correctIndex = parseInt(parseFloat(opt)) - 1; 
+                    }
+                    continue; 
+                }
+                
+                if (!opt || opt.trim() === "") continue;
+
+                if (opt.includes("@@")) {
+                    correctIndex = rawOptions.length; 
+                    opt = opt.replace("@@", "");
+                }
+                rawOptions.push(opt);
+            }
+
+            if (correctIndex === -1 && rawOptions.length > 0) {
+                 const lastCol = cols[cols.length-1];
+                 if (lastCol && !isNaN(parseFloat(lastCol))) {
+                     correctIndex = parseInt(parseFloat(lastCol)) - 1;
+                 }
+            }
+
+            if (rawOptions.length < 2 || correctIndex === -1) continue;
+
+            const ansChar = String.fromCharCode(65 + correctIndex); 
+
+            questions.push({
+                id: `F-${i+1}`,
+                text: qText,
+                options: rawOptions,
+                answer: ansChar,
+                tag: '期末'
+            });
+        }
+        return questions;
+    }
+
+    function initApp() {
+        if (allMidtermQuestions.length === 0) {
+            try {
+                allMidtermQuestions = parseMidterm();
+                allFinalQuestions = parseFinal();
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('start-screen').classList.remove('hidden');
+                updateBankInfo();
+            } catch (e) {
+                alert("資料解析失敗：" + e);
+            }
+        } else {
+            showScreen('start-screen');
+        }
+        
+        currentIndex = 0;
+        score = 0;
+        userAnswers = [];
+        document.getElementById('final-score').textContent = '0';
+        document.getElementById('score-message').textContent = '';
+        document.getElementById('review-container').innerHTML = '';
+        document.getElementById('next-btn').classList.add('hidden');
+        document.getElementById('feedback-area').textContent = '';
+    }
+
+    // 驗證輸入題數
+    function validateInput() {
+        const input = document.getElementById('question-count');
+        const warning = document.getElementById('count-warning');
+        const val = parseInt(input.value);
+        
+        if (val < 20) {
+            warning.style.display = 'block';
+        } else {
+            warning.style.display = 'none';
+        }
+    }
+
+    function updateBankInfo() {
+        const type = document.getElementById('bank-selector').value;
+        const info = document.getElementById('bank-info');
+        let total = 0;
+        
+        if (type === 'midterm') total = allMidtermQuestions.length;
+        else if (type === 'final') total = allFinalQuestions.length;
+        else total = allMidtermQuestions.length + allFinalQuestions.length;
+
+        info.textContent = `目前範圍共有 ${total} 題`;
+        
+        // 驗證輸入框
+        validateInput();
+    }
+
+    function startQuiz() {
+        const type = document.getElementById('bank-selector').value;
+        let countInput = document.getElementById('question-count');
+        let count = parseInt(countInput.value);
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        
+        let pool = [];
+        if (type === 'midterm') pool = [...allMidtermQuestions];
+        else if (type === 'final') pool = [...allFinalQuestions];
+        else pool = [...allMidtermQuestions, ...allFinalQuestions];
+
+        if (pool.length === 0) {
+            alert("題庫無資料！");
+            return;
+        }
+
+        // 強制最少20題
+        if (count < 20) {
+            alert("為了確保練習效果，系統將自動調整為最少 20 題喔！");
+            count = 20;
+            countInput.value = 20;
+            document.getElementById('count-warning').style.display = 'none';
+        }
+
+        // 幽默的「題目不夠」提醒
+        if (count > pool.length) {
+            alert(`哇！你的學習熱忱突破天際了！但題庫目前只有 ${pool.length} 題，再多我就要開始瞎掰了...\n為了確保考試品質，幫你調整為 ${pool.length} 題全部梭哈！加油！`);
+            count = pool.length;
+            countInput.value = pool.length;
+        }
+
+        if (mode === 'random') {
+            pool.sort(() => 0.5 - Math.random());
+        }
+        
+        currentQuizQuestions = pool.slice(0, count);
+        currentIndex = 0;
+        score = 0;
+        userAnswers = [];
+
+        showScreen('quiz-screen');
+        renderQuestion();
+        updateProgress();
+    }
+
+    function renderQuestion() {
+        const q = currentQuizQuestions[currentIndex];
+        
+        const tagEl = document.getElementById('question-tag');
+        tagEl.textContent = q.tag;
+        tagEl.className = q.tag === '期末' ? 'question-meta final' : 'question-meta';
+
+        document.getElementById('question-text').textContent = `${currentIndex + 1}. ${q.text}`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+        q.options.forEach((optText, idx) => {
+            const label = labels[idx] || '?';
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<span class="option-label">${label}</span><span>${optText}</span>`;
+            btn.onclick = () => checkAnswer(label, btn);
+            container.appendChild(btn);
+        });
+
+        document.getElementById('feedback-area').textContent = '';
+        document.getElementById('next-btn').classList.add('hidden');
+    }
+
+    function checkAnswer(selectedLabel, btnElement) {
+        const q = currentQuizQuestions[currentIndex];
+        const buttons = document.querySelectorAll('.option-btn');
+        const feedback = document.getElementById('feedback-area');
+        
+        buttons.forEach(b => b.disabled = true);
+
+        const isCorrect = (selectedLabel === q.answer);
+        
+        userAnswers.push({
+            qIndex: currentIndex + 1,
+            text: q.text,
+            correctAnswer: q.answer,
+            userAnswer: selectedLabel,
+            isCorrect: isCorrect,
+            options: q.options,
+            tag: q.tag
+        });
+
+        if (isCorrect) {
+            score++;
+            btnElement.classList.add('correct');
+            feedback.style.color = "var(--success-color)";
+            feedback.textContent = "答對了！";
+        } else {
+            btnElement.classList.add('wrong');
+            buttons.forEach(b => {
+                if (b.querySelector('.option-label').textContent === q.answer) {
+                    b.classList.add('correct');
+                }
+            });
+            feedback.style.color = "var(--error-color)";
+            feedback.textContent = `答錯了！正確答案是 ${q.answer}`;
+        }
+        
+        document.getElementById('score-text').textContent = `得分: ${score}`;
+        document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < currentQuizQuestions.length) {
+            renderQuestion();
+            updateProgress();
+        } else {
+            endQuiz();
+        }
+    }
+
+    function updateProgress() {
+        const total = currentQuizQuestions.length;
+        document.getElementById('progress-text').textContent = `第 ${currentIndex + 1} / ${total} 題`;
+        const percent = ((currentIndex) / total) * 100;
+        document.getElementById('progress-fill').style.width = `${percent}%`;
+    }
+
+    function endQuizEarly() {
+        if (confirm("確定要交卷嗎？未完成的題目將不計分。")) {
+            endQuiz();
+        }
+    }
+
+    function endQuiz() {
+        showScreen('result-screen');
+        const totalCount = currentQuizQuestions.length;
+        document.getElementById('final-score').textContent = `${score} / ${totalCount}`;
+        
+        const messageEl = document.getElementById('score-message');
+        const container = document.getElementById('review-container');
+        const wrongAnswers = userAnswers.filter(a => !a.isCorrect);
+        
+        // 邏輯修正：判斷使用者的作答狀況
+        if (userAnswers.length === 0) {
+            messageEl.textContent = "您尚未作答就交卷囉！下次請嘗試練習看看。";
+            messageEl.className = "score-message warning";
+            container.innerHTML = '';
+            return; // 提早結束，不渲染錯題
+        } 
+        
+        if (score === totalCount && userAnswers.length > 0) {
+            messageEl.textContent = "太棒了！全對！";
+            messageEl.className = "score-message perfect";
+        } else {
+            messageEl.textContent = "再接再厲！複習一下錯題會更進步喔！";
+            messageEl.className = "score-message normal";
+        }
+
+        if (wrongAnswers.length > 0) {
+            let html = '<h3>錯題複習</h3>';
+            wrongAnswers.forEach(item => {
+                const correctOptIndex = item.correctAnswer.charCodeAt(0) - 65;
+                const correctText = item.options[correctOptIndex] || "";
+                
+                const wrongOptIndex = item.userAnswer.charCodeAt(0) - 65;
+                const wrongText = item.options[wrongOptIndex] || "";
+
+                html += `
+                <div class="review-item">
+                    <div class="review-q"><span class="question-meta">${item.tag}</span> ${item.qIndex}. ${item.text}</div>
+                    <div class="review-ans-row">
+                        <span class="review-label">您的答案:</span> 
+                        <span class="text-wrong">${item.userAnswer}. ${wrongText}</span>
+                    </div>
+                    <div class="review-ans-row">
+                        <span class="review-label">正確答案:</span> 
+                        <span class="text-correct">${item.correctAnswer}. ${correctText}</span>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        } else if (userAnswers.length > 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:green;">沒有錯題，表現優異！</div>';
+        }
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.content > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    window.onload = initApp;
+
+</script>
+
+</body>
+</html>
